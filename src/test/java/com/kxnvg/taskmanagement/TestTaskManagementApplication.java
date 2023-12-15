@@ -17,7 +17,7 @@ public class TestTaskManagementApplication {
     }
 
     public static void main(String[] args) {
-        SpringApplication.from(TaskManagementApplication::main).with(TestTaskManagementApplication.class).run(args);
+        SpringApplication.from(ApplicationRunner::main).with(TestTaskManagementApplication.class).run(args);
     }
 
 }
