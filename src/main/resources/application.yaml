@@ -22,5 +22,5 @@ springdoc:
     path : /api-docs
 
 jwt:
-  secret: secret
-  lifetime: 30
+  secret: ZSCh9kkZU7I4/O9v3bau5TE3VrtfqB/oComvw/zKEXp0CD6gavnRCJ+70MZJzNLF
+  lifetime: 30m
