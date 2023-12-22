@@ -1,11 +1,13 @@
 package com.kxnvg.taskmanagement.service;
 
+import com.kxnvg.taskmanagement.client.UserContext;
 import com.kxnvg.taskmanagement.dto.AuthenticateRequestDto;
 import com.kxnvg.taskmanagement.dto.AuthenticateResponseDto;
 import com.kxnvg.taskmanagement.dto.RegisterRequestDto;
 import com.kxnvg.taskmanagement.dto.UserDto;
 import com.kxnvg.taskmanagement.entity.User;
 import com.kxnvg.taskmanagement.entity.enums.UserRole;
+import com.kxnvg.taskmanagement.exception.IncorrectUserActionException;
 import com.kxnvg.taskmanagement.mapper.UserMapper;
 import com.kxnvg.taskmanagement.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,6 +33,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenService jwtTokenService;
     private final AuthenticationManager authenticationManager;
+    private final UserContext userContext;
 
     @Transactional(readOnly = true)
     public UserDto getUser(Long userId) {
@@ -41,10 +44,12 @@ public class UserService {
 
     @Transactional
     public UserDto updateUser(UserDto userDto) {
-        User user = takeUserFromDB(userDto.getId());
+        Long userId = userDto.getId();
+
+        User user = checkCorrectnessUserAction(userId);
         user.setFirstname(userDto.getFirstname());
         user.setLastname(userDto.getLastname());
-        log.info("User with id={} is updated successfully", userDto.getId());
+        log.info("User with id={} is updated successfully", userId);
         return userMapper.toDto(user);
     }
 
@@ -59,13 +64,37 @@ public class UserService {
 
     @Transactional
     public boolean deleteUser(Long userId) {
-        if (userRepository.existsById(userId)) {
+        try {
+            checkCorrectnessUserAction(userId);
             userRepository.deleteById(userId);
             log.info("User with id={} was deleted from DB successfully", userId);
             return true;
+        } catch (EntityNotFoundException e) {
+            log.info("User with id={} is not found in DB", userId);
+            return false;
         }
-        log.info("User with id={} is not found in DB", userId);
-        return false;
+    }
+
+    @Transactional
+    public Boolean makeAdminRole(Long userId) {
+        User user = takeUserFromDB(userId);
+        if (user.getRole() == UserRole.ADMIN) {
+            return false;
+        }
+        user.setRole(UserRole.ADMIN);
+        log.info("User with id={} became an administrator", userId);
+        return true;
+    }
+
+    @Transactional
+    public Boolean makeUserRole(Long userId) {
+        User user = takeUserFromDB(userId);
+        if (user.getRole() == UserRole.USER) {
+            return false;
+        }
+        user.setRole(UserRole.USER);
+        log.info("User with id={} became an user", userId);
+        return true;
     }
 
     @Transactional
@@ -105,6 +134,16 @@ public class UserService {
         return AuthenticateResponseDto.builder()
                 .token(jwtToken)
                 .build();
+    }
+
+
+    protected User checkCorrectnessUserAction(Long userId) {
+        User requestSender = takeUserFromDB(userContext.getUserId());
+        User user = takeUserFromDB(userId);
+        if (requestSender.getRole() == UserRole.ADMIN || userContext.getUserId() == userId) {
+            return user;
+        }
+        throw new IncorrectUserActionException("You can't do this operation or you must have ADMIN role");
     }
 
     protected User takeUserFromDB(Long userId) {

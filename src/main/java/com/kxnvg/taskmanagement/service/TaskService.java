@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -37,6 +38,8 @@ public class TaskService {
 
     @Transactional
     public TaskDto updateTask(TaskDto taskDto) {
+        userService.checkCorrectnessUserAction(taskDto.getAuthorId());
+
         Task task = takeTaskFromDB(taskDto.getId());
         task.setTitle(taskDto.getTitle());
         task.setContent(taskDto.getContent());
@@ -50,7 +53,9 @@ public class TaskService {
 
     @Transactional
     public Boolean deleteTask(Long taskId) {
-        if (taskRepository.existsById(taskId)) {
+        Optional<Task> maybeTask = taskRepository.findById(taskId);
+        if (maybeTask.isPresent()) {
+            userService.checkCorrectnessUserAction(maybeTask.get().getAuthor().getId());
             taskRepository.deleteById(taskId);
             log.info("Task with id={} was deleted successfully", taskId);
             return true;
