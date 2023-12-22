@@ -1,6 +1,8 @@
 package com.kxnvg.taskmanagement.dto;
 
+import com.kxnvg.taskmanagement.entity.enums.UserRole;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,4 +30,7 @@ public class RegisterRequestDto {
     @NotBlank(message = "Password can't be empty")
     @Size(max = 128, message = "Password can't be more than 128 symbols")
     private String password;
+
+    @NotNull(message = "User role can't be null")
+    private UserRole role;
 }

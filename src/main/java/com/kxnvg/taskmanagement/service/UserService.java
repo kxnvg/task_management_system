@@ -8,24 +8,23 @@ import com.kxnvg.taskmanagement.entity.User;
 import com.kxnvg.taskmanagement.entity.enums.UserRole;
 import com.kxnvg.taskmanagement.mapper.UserMapper;
 import com.kxnvg.taskmanagement.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserService implements UserDetailsService {
+public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
@@ -35,7 +34,38 @@ public class UserService implements UserDetailsService {
 
     @Transactional(readOnly = true)
     public UserDto getUser(Long userId) {
-        return null;
+       User user = takeUserFromDB(userId);
+       log.info("User with id={} was taken from DB successfully", userId);
+       return userMapper.toDto(user);
+    }
+
+    @Transactional
+    public UserDto updateUser(UserDto userDto) {
+        User user = takeUserFromDB(userDto.getId());
+        user.setFirstname(userDto.getFirstname());
+        user.setLastname(userDto.getLastname());
+        log.info("User with id={} is updated successfully", userDto.getId());
+        return userMapper.toDto(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserDto> getAllUser() {
+        List<User> allUsers = userRepository.findAll();
+        log.info("All users was taken from DB successfully");
+        return allUsers.stream()
+                .map(userMapper::toDto)
+                .toList();
+    }
+
+    @Transactional
+    public boolean deleteUser(Long userId) {
+        if (userRepository.existsById(userId)) {
+            userRepository.deleteById(userId);
+            log.info("User with id={} was deleted from DB successfully", userId);
+            return true;
+        }
+        log.info("User with id={} is not found in DB", userId);
+        return false;
     }
 
     @Transactional
@@ -45,7 +75,7 @@ public class UserService implements UserDetailsService {
                 .lastname(requestDto.getLastname())
                 .email(requestDto.getEmail())
                 .password(passwordEncoder.encode(requestDto.getPassword()))
-                .role(UserRole.USER)
+                .role(requestDto.getRole())
                 .comments(new ArrayList<>())
                 .createdTasks(new ArrayList<>())
                 .executableTasks(new ArrayList<>())
@@ -69,7 +99,7 @@ public class UserService implements UserDetailsService {
         var user = userRepository.findByEmail(requestDto.getEmail())
                 .orElseThrow(() ->  new UsernameNotFoundException(
                         String.format("User with email=%s is not found in DB", requestDto.getEmail())));
-        log.info("User with email={} was take from DB successfully", user.getEmail());
+        log.info("User with email={} was successfully authenticated", user.getEmail());
 
         String jwtToken = jwtTokenService.generateToken(user);
         return AuthenticateResponseDto.builder()
@@ -77,15 +107,8 @@ public class UserService implements UserDetailsService {
                 .build();
     }
 
-    @Transactional
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(username).orElseThrow(
-                () -> new UsernameNotFoundException(String.format("User with username=%s is not found in DB", username)));
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                Collections.singleton(user.getRole())
-        );
+    protected User takeUserFromDB(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException(String.format("User with id=%d is not found", userId)));
     }
 }
