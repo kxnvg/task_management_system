@@ -1,5 +1,5 @@
 # Task Management System
-CRUD-application for task management.
+CRUD-application for task management with authentication and authorization of users.
 
 # Technologies used
 * Spring Boot
