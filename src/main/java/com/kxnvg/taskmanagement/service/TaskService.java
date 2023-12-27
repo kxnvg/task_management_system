@@ -31,6 +31,7 @@ public class TaskService {
 
     @Transactional
     public Long createTask(TaskDto taskDto) {
+        userService.takeUserFromDB(taskDto.getAuthorId());
         Task savedTask = taskRepository.save(taskMapper.toEntity(taskDto));
         log.info("Task with title={} was saved in DB successfully", taskDto.getTitle());
         return savedTask.getId();

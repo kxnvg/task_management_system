@@ -19,6 +19,7 @@ public interface TaskMapper {
     @Mapping(target = "commentsId", source = "comments", qualifiedByName = "mapCommentToId")
     TaskDto toDto(Task task);
 
+    @Mapping(target = "author", source = "authorId", qualifiedByName = "mapIdToUser")
     Task toEntity(TaskDto taskDto);
 
     @Named("mapCommentToId")
@@ -26,5 +27,12 @@ public interface TaskMapper {
         return comments.stream()
                 .map(Comment::getId)
                 .toList();
+    }
+
+    @Named("mapIdToUser")
+    default User mapIdToUser(Long authorId) {
+        return User.builder()
+                .id(authorId)
+                .build();
     }
 }

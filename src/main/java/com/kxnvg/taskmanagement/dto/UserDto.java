@@ -31,8 +31,12 @@ public class UserDto {
     @Size(max = 128, message = "Last name can't be more than 128 symbols")
     private String lastname;
 
+    @NotBlank(message = "Email can't be empty")
+    @Size(max = 128, message = "Email can't be more than 128 symbols")
     private String email;
 
+    @NotBlank(message = "Password can't be empty")
+    @Size(max = 128, message = "Password can't be more than 128 symbols")
     private String password;
 
     private UserRole role;

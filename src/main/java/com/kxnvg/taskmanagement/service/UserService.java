@@ -47,6 +47,8 @@ public class UserService {
         Long userId = userDto.getId();
 
         User user = checkCorrectnessUserAction(userId);
+        user.setEmail(userDto.getEmail());
+        user.setPassword(userDto.getPassword());
         user.setFirstname(userDto.getFirstname());
         user.setLastname(userDto.getLastname());
         log.info("User with id={} is updated successfully", userId);
@@ -54,7 +56,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserDto> getAllUser() {
+    public List<UserDto> getAllUsers() {
         List<User> allUsers = userRepository.findAll();
         log.info("All users was taken from DB successfully");
         return allUsers.stream()
@@ -135,7 +137,6 @@ public class UserService {
                 .token(jwtToken)
                 .build();
     }
-
 
     protected User checkCorrectnessUserAction(Long userId) {
         User requestSender = takeUserFromDB(userContext.getUserId());

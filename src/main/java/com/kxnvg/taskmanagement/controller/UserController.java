@@ -37,7 +37,7 @@ public class UserController {
     @GetMapping
     public List<UserDto> getAllUsers() {
         log.info("Received request to get all users");
-        return userService.getAllUser();
+        return userService.getAllUsers();
     }
 
     @DeleteMapping("/{userId}")
