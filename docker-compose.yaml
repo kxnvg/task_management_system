@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  db:
+    container_name: db
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pass
+    ports:
+      - '5432:5432'
+  task-management:
+    container_name: task-management
+    build: .
+    ports:
+      - '8080:8080'
+    depends_on:
+      - "db"

@@ -1,7 +1,6 @@
 package com.kxnvg.taskmanagement.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.kxnvg.taskmanagement.entity.Comment;
 import com.kxnvg.taskmanagement.entity.enums.UserRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -51,5 +50,5 @@ public class UserDto {
     private LocalDateTime createdAt;
 
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime updatedAT;
+    private LocalDateTime updatedAt;
 }
